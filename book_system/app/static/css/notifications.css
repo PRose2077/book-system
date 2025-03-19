@@ -1,0 +1,157 @@
+/* 通知容器 */
+.notification-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 350px;
+    width: 100%;
+}
+
+/* 通知项 */
+.notification {
+    background: #37271C;
+    color: #F5E6D3;
+    border-left: 4px solid #9F6A38;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    opacity: 0;
+}
+
+.notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-content {
+    flex: 1;
+    margin-bottom: 10px;
+}
+
+.notification-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 16px;
+}
+
+.notification-message {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.notification-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.notification-btn {
+    background: #9F6A38;
+    color: #F5E6D3;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.notification-btn:hover {
+    background: #b27b45;
+}
+
+.notification-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #F5E6D3;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+/* 通知类型样式 */
+.notification.success {
+    border-left-color: #5FB878;
+}
+
+.notification.success .notification-btn {
+    background: #5FB878;
+}
+
+.notification.success .notification-btn:hover {
+    background: #4ea367;
+}
+
+.notification.error {
+    border-left-color: #FF5722;
+}
+
+.notification.error .notification-btn {
+    background: #FF5722;
+}
+
+.notification.error .notification-btn:hover {
+    background: #e64a19;
+}
+
+/* 通知动画 */
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.notification.show {
+    animation: fadeInRight 0.3s forwards;
+}
+
+.notification.hide {
+    animation: fadeOutRight 0.3s forwards;
+}
+
+/* 添加脉冲动画效果 */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(95, 184, 120, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(95, 184, 120, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(95, 184, 120, 0);
+    }
+}
+
+.notification.success {
+    animation: fadeInRight 0.3s forwards, pulse 2s infinite;
+} 

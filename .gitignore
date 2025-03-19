@@ -1,0 +1,5 @@
+hadoop/
+mongodb/
+spark/
+__pycache__/
+fairscheduler-statedump.log

@@ -1,0 +1,180 @@
+services:
+  spark:
+    image: s1mplecc/spark-hadoop:3
+    hostname: master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./spark/share:/opt/share
+      - ./hadoop/namenode:/root/hdfs/namenode
+      - ./hadoop/logs:/var/log/hadoop    
+    ports:
+      - '8080:8080'
+      - '4040:4040'
+      - '8088:8088'
+      - '8042:8042'
+      - '9870:9870'
+      - '19888:19888'
+    networks:
+      - spark-network
+
+  spark-worker-1:
+    image: s1mplecc/spark-hadoop:3
+    hostname: worker1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://master:7077
+      - SPARK_WORKER_MEMORY=1500M
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./spark/share:/opt/share
+      - ./hadoop/datanode1:/root/hdfs/datanode 
+      - ./hadoop/logs1:/var/log/hadoop 
+    ports:
+      - '8081:8081'
+    networks:
+      - spark-network
+
+  spark-worker-2:
+    image: s1mplecc/spark-hadoop:3
+    hostname: worker2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://master:7077
+      - SPARK_WORKER_MEMORY=1500M
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./spark/share:/opt/share
+      - ./hadoop/datanode2:/root/hdfs/
+      - ./hadoop/logs2:/var/log/hadoop 
+    ports:
+      - '8082:8081'
+    networks:
+      - spark-network
+
+  mongodb-primary:
+    image: mongo:4.4
+    hostname: mongodb-primary
+    restart: always
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_REPLSET_NAME: rs0
+    command: mongod --replSet rs0 --bind_ip_all --keyFile /data/mongodb-keyfile --auth
+    volumes:
+      - mongodb_primary_data:/data/db
+      - ./mongodb/keyfile/mongo-keyfile:/data/mongodb-keyfile:ro
+    networks:
+      - spark-network
+
+  mongodb-secondary1:
+    image: mongo:4.4
+    hostname: mongodb-secondary1
+    restart: always
+    ports:
+      - '27018:27017'
+    environment:
+      MONGO_REPLSET_NAME: rs0
+    command: mongod --replSet rs0 --bind_ip_all --keyFile /data/mongodb-keyfile --auth
+    volumes:
+      - mongodb_secondary1_data:/data/db
+      - ./mongodb/keyfile/mongo-keyfile:/data/mongodb-keyfile:ro
+    networks:
+      - spark-network
+
+  mongodb-secondary2:
+    image: mongo:4.4
+    hostname: mongodb-secondary2
+    restart: always
+    ports:
+      - '27019:27017'
+    environment:
+      MONGO_REPLSET_NAME: rs0
+    command: mongod --replSet rs0 --bind_ip_all --keyFile /data/mongodb-keyfile --auth
+    volumes:
+      - mongodb_secondary2_data:/data/db
+      - ./mongodb/keyfile/mongo-keyfile:/data/mongodb-keyfile:ro
+    networks:
+      - spark-network
+
+  flask-jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask-spark
+    ports:
+      - "5000:5000"  # Flask 端口
+      - "8888:8888"  # Jupyter 端口
+    volumes:
+      - ./book_system:/app  # 项目代码
+      - ./jupyter/notebooks:/opt/notebooks  # Jupyter notebooks
+      - hanlp_data:/root/.hanlp  # 添加这一行，持久化HanLP数据
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PYSPARK_PYTHON=python3
+      - PYSPARK_DRIVER_PYTHON=python3
+    networks:
+      - spark-network
+    depends_on:
+      - mongodb-primary
+      - mongodb-secondary1
+      - mongodb-secondary2
+      - spark
+    # 使用 supervisor 同时启动 Flask 和 Jupyter
+    command: >
+      bash -c "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password='' &
+      python3 run.py"
+  # flask-app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.flask
+  #   ports:
+  #     - "5000:5000"
+  #   environment:
+  #     - MONGO_URI=mongodb://root:example@mongodb-primary:27017,mongodb-secondary1:27017,mongodb-secondary2:27017/spark_data?authSource=admin&replicaSet=rs0
+  #   depends_on:
+  #     - mongodb-primary
+  #     - mongodb-secondary1
+  #     - mongodb-secondary2
+  #   networks:
+  #     - spark-network
+
+
+  # jupyter:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.jupyter
+  #   hostname: jupyter
+  #   ports:
+  #     - '8888:8888'
+  #   volumes:
+  #     - ./jupyter/notebooks:/opt/notebooks
+  #   depends_on:
+  #     - spark
+  #   networks:
+  #     - spark-network
+
+networks:
+  spark-network:
+    name: spark-network
+    driver: bridge
+
+volumes:
+  mongodb_primary_data:
+  mongodb_secondary1_data:
+  mongodb_secondary2_data:
+  hanlp_data: 

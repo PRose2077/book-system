@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}文件上传{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    console.log('=== upload.html 脚本开始 ===');
+        // 隐藏词云图容器
+        document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('.word-cloud-container').style.display = 'none';
+    });
+</script>
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <!-- 上传区域 -->
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">
+                <i class="layui-icon layui-icon-upload"></i>
+            </div>
+            <div class="upload-text">
+                点击或拖拽文件到此处上传
+                <div class="upload-hint">支持 .csv 格式，文件至少含有'book_id', 'book_title', 'comment_id', 'content'</div>
+            </div>
+        </div>
+    </div>
+
+        <!-- 上传历史 -->
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    当前会话上传历史
+                    <button class="layui-btn layui-btn-xs layui-btn-refresh">
+                        <i class="layui-icon layui-icon-refresh"></i> 刷新
+                    </button>
+                </div>
+                <div class="layui-card-body">
+                    <table class="layui-table" id="uploadHistory">
+                        <thead>
+                            <tr>
+                                <th>文件名</th>
+                                <th>大小</th>
+                                <th>状态</th>
+                                <th>上传时间</th>
+                                <th>最后更新时间</th>
+                                <th>总行数</th>
+                                <th>错误信息</th>
+                                <th>操作</th> 
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

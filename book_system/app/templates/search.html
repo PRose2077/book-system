@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}搜索 - 书评分析系统{% endblock %}
+
+{% block content %}
+<div class="layui-container">
+    <!-- 搜索框 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <form class="layui-form search-box" method="get">
+                <div class="layui-input-group">
+                    <input type="text" name="keyword" value="{{ keyword }}" 
+                           placeholder="输入书名、作者或关键词" class="layui-input">
+                    <div class="layui-input-suffix">
+                        <button class="layui-btn">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 搜索结果或推荐 -->
+<div class="layui-row mt-20">
+    <div class="layui-col-md12">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                {% if is_search %}
+                    搜索结果
+                {% else %}
+                    随机推荐
+                {% endif %}
+            </div>
+            <div class="layui-card-body">
+                {% if books %}
+                <div class="layui-row layui-col-space15">
+                    {% for book in books %}
+                    <div class="layui-col-md3">
+                        <a href="{{ url_for('main.book_detail', id=book.book_id) }}" class="book-card-link">
+                            <div class="book-card">
+                                <div class="book-card-inner">
+                                    <div class="book-cover">
+                                        <img src="{{ book.cover_url if book.cover_url else url_for('static', filename='images/default-cover.jpg') }}" 
+                                             alt="{{ book.book_title }}"
+                                             onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-cover.jpg') }}';">
+                                    </div>
+                                    <div class="book-info">
+                                        <h3 class="book-title" title="{{ book.book_title }}">{{ book.book_title }}</h3>
+                                        <p class="book-author" title="{{ book.author }}">作者：{{ book.author }}</p>
+                                        <p class="book-pub">出版：{{ book.pub_year }}</p>
+                                        <p class="comment-count">评论数：{{ book.comment_count }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="layui-card">
+                    <div class="layui-card-body empty-result">
+                        <div class="no-data">
+                            <p>没有找到相关书籍</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+layui.use(['element'], function(){
+    var element = layui.element;
+});
+</script>
+{% endblock %}

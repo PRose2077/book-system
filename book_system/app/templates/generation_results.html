@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}生成结果{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // 隐藏词云图容器
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('.word-cloud-container').style.display = 'none';
+    });
+
+    function deleteResult(taskId) {
+        layer.confirm('确定要删除这个生成结果吗？', {
+            btn: ['确定','取消']
+        }, function(){
+            $.ajax({
+                url: '/api/generation/result/' + taskId,
+                type: 'DELETE',
+                success: function(res) {
+                    if(res.code === 0) {
+                        layer.msg('删除成功');
+                        // 刷新页面
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        layer.msg(res.msg || '删除失败');
+                    }
+                },
+                error: function() {
+                    layer.msg('删除失败，请重试');
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    生成结果列表
+                    <button class="layui-btn layui-btn-xs layui-btn-refresh" onclick="location.reload()">
+                        <i class="layui-icon layui-icon-refresh"></i> 刷新
+                    </button>
+                </div>
+                <div class="layui-card-body">
+                    {% if error %}
+                    <div class="layui-alert layui-bg-red">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if results and results|length > 0 %}
+                    <table class="layui-table">
+                        <thead>
+                            <tr>
+                                <th>写作类型</th>
+                                <th>标签数量</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>更新时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr>
+                                <td>{{ result.writing_type }}</td>
+                                <td>{{ (result.tags|length) + (result.tag_infos|length) }}</td>
+                                <td>
+                                    {% if result.status == 'completed' %}
+                                    <span class="layui-badge layui-bg-green">已完成</span>
+                                    {% elif result.status == 'processing' %}
+                                    <span class="layui-badge layui-bg-blue">处理中</span>
+                                    {% elif result.status == 'failed' %}
+                                    <span class="layui-badge">失败</span>
+                                    {% else %}
+                                    <span class="layui-badge layui-bg-gray">{{ result.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ result.created_at }}</td>
+                                <td>{{ result.updated_at }}</td>
+                                <td>
+                                    <a href="{{ url_for('main.generation_result_detail', task_id=result._id) }}" class="layui-btn layui-btn-xs">查看</a>
+                                    <button class="layui-btn layui-btn-xs layui-btn-danger" onclick="deleteResult('{{ result._id }}')">删除</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="layui-empty">
+                        <i class="layui-icon layui-icon-face-surprised"></i>
+                        <p>暂无生成结果</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

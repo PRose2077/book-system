@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.book_title }} - 书评分析系统{% endblock %}
+
+{% block content %}
+<div class="layui-container">
+    <!-- 书籍信息 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    {% if from_page == 'upload_details' %}
+                        <a href="{{ url_for('main.upload_details', file_id=file_id) }}" class="layui-btn layui-btn-primary">
+                            <i class="layui-icon layui-icon-return"></i> 返回上传详情
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('main.index') }}" class="layui-btn layui-btn-primary">
+                            <i class="layui-icon layui-icon-return"></i> 返回主页
+                        </a>
+                    {% endif %}
+                    <span class="card-header-text">书籍详情</span>
+                </div>
+                <div class="layui-card-body">
+                    <div class="book-info-layout">
+                        <!-- 左侧封面 -->
+                        <div class="book-cover-3d">
+                            <div class="book-cover-inner">
+                                <img src="{{ book.cover_url if book.cover_url else url_for('static', filename='images/default-cover.jpg') }}" 
+                                     alt="{{ book.book_title }}" 
+                                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-cover.jpg') }}';">
+                            </div>
+                        </div>
+                        <!-- 右侧信息 -->
+                        <div class="book-meta">
+                            <h2>{{ book.book_title }}</h2>
+                            <p><strong>作者：</strong>{{ book.author }}</p>
+                            <p><strong>出版时间：</strong>{{ book.pub_year }}</p>
+                            {% if book.publisher %}
+                            <p><strong>出版社：</strong>{{ book.publisher }}</p>
+                            {% endif %}
+                            <p><strong>评论数：</strong>{{ total_comments }}</p>
+                            {% if book.book_url %}
+                            <a href="{{ book.book_url }}" target="_blank" class="layui-btn layui-btn-normal layui-btn-sm">
+                                查看原文
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据分析 -->
+    <div class="layui-row layui-col-space15 mt-20">
+        <!-- 情感分布 -->
+        <div class="layui-col-md6">
+            <div class="layui-card">
+                <div class="layui-card-header">情感分布</div>
+                <div class="layui-card-body">
+                    <div id="sentimentPie" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+        <!-- 标签云 -->
+        <div class="layui-col-md6">
+            <div class="layui-card">
+                <div class="layui-card-header">评论标签</div>
+                <div class="layui-card-body">
+                    <div id="tagCloud" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 评论列表 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    最新评论
+                    <span class="layui-badge layui-bg-blue">{{ total_comments }}</span>
+                </div>
+                <div class="layui-card-body">
+                    {% if comments %}
+                        {% for comment in comments %}
+                        <div class="comment-item">
+                            <div class="comment-content">{{ comment.content }}</div>
+                            <div class="comment-meta">
+                                <span class="sentiment-badge sentiment-{{ 'positive' if comment.sentiment == '正面' else 'negative' }}">
+                                    {{ comment.sentiment }}
+                                </span>
+                                {% if comment.labels %}
+                                <span class="tags">
+                                    {% for tag in comment.labels %}
+                                    <span class="layui-badge-rim draggable-tag" data-tag="{{ tag }}">{{ tag }}</span>
+                                    {% endfor %}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- 查看更多按钮 -->
+                        {% if total_comments > 5 %}
+                        <div class="view-more-container" style="text-align: center; margin-top: 20px;">
+                            <a href="{{ url_for('main.book_comments', book_id=book.book_id) }}" 
+                            class="layui-btn layui-btn-normal">
+                                查看全部评论 →
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-result">
+                            <div class="no-data">
+                                <p>暂无评论数据</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 封面放大模态框 -->
+<div class="book-cover-modal">
+    <div class="book-cover-modal-content">
+        <div class="book-cover-3d-large">
+            <div class="book-cover-inner">
+                <img src="{{ book.cover_url if book.cover_url else url_for('static', filename='images/default-cover.jpg') }}" 
+                     alt="{{ book.book_title }}" 
+                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-cover.jpg') }}';">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function() {
+    // 初始化情感分布饼图
+    var sentimentPie = echarts.init(document.getElementById('sentimentPie'));
+    var sentimentPieOption = {
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c}条 ({d}%)'
+        },
+        legend: {
+            orient: 'horizontal',
+            bottom: 'bottom'
+        },
+        series: [{
+            type: 'pie',
+            radius: '65%',
+            data: {{ sentiment_data|tojson|safe }},
+            emphasis: {
+                itemStyle: {
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            }
+        }]
+    };
+    sentimentPie.setOption(sentimentPieOption);
+
+    // 初始化词云配置
+    var tagCloudOption = {
+        tooltip: {
+            show: true,
+            formatter: function(params) {
+                return params.data.name + ': ' + Math.round(params.data.value);
+            }
+        },
+        series: [{
+            type: 'wordCloud',
+            shape: 'circle',
+            left: 'center',
+            top: 'center',
+            width: '90%',
+            height: '90%',
+            right: null,
+            bottom: null,
+            sizeRange: [12, 60],
+            rotationRange: [-45, 45],
+            rotationStep: 45,
+            gridSize: 8,
+            drawOutOfBound: false,
+            textStyle: {
+                fontFamily: 'sans-serif',
+                fontWeight: 'bold',
+                color: function () {
+                    return 'rgb(' + [
+                        Math.round(Math.random() * 160 + 40),
+                        Math.round(Math.random() * 160 + 40),
+                        Math.round(Math.random() * 160 + 40)
+                    ].join(',') + ')';
+                }
+            },
+            emphasis: {
+                textStyle: {
+                    shadowBlur: 10,
+                    shadowColor: '#333'
+                }
+            },
+            data: {{ tag_data|tojson|safe }}
+        }]
+    };
+
+    // 初始化词云图表
+    var tagCloud = echarts.init(document.getElementById('tagCloud'));
+    tagCloud.setOption(tagCloudOption);
+
+    // 为词云添加点击事件
+    tagCloud.on('click', function (params) {
+        if (params.componentType === 'series') {
+            window.addGlobalTag(params.data.name);
+            layer.msg('已添加标签：' + params.data.name);
+        }
+    });
+
+    // 监听窗口大小变化
+    window.addEventListener('resize', function() {
+        tagCloud.resize();
+    });
+
+    // 封面放大功能
+    const cover = document.querySelector('.book-cover-3d');
+    const modal = document.querySelector('.book-cover-modal');
+    const modalContent = document.querySelector('.book-cover-3d-large');
+
+    cover.addEventListener('click', function() {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
+    });
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+    });
+
+    // 模态框中的3D效果
+    modal.addEventListener('mousemove', function(e) {
+        const rect = modalContent.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = (y - centerY) / 15;
+        const rotateY = -(x - centerX) / 15;
+        
+        modalContent.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+    
+    modal.addEventListener('mouseleave', function() {
+        modalContent.style.transform = 'rotateX(0) rotateY(0)';
+    });
+});
+</script>
+{% endblock %}

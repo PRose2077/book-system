@@ -1,0 +1,35 @@
+/* 移动设备适配 */
+@media screen and (max-width: 768px) {
+    .layui-body {
+        left: 0 !important;
+    }
+    
+    .main-content {
+        padding: 10px;
+    }
+    
+    .search-box {
+        max-width: 800px;
+        width: 90%;
+        margin: 20px auto;
+        padding: 25px;
+        background: #37271C;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .book-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 20px;
+        padding: 20px 0;
+    }
+    
+    .book-card {
+        height: 280px;
+    }
+    
+    .book-cover {
+        height: 200px;
+    }
+}

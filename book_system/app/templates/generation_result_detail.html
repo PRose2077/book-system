@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}生成结果详情{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/github-markdown.min.css') }}">
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/marked.min.js') }}"></script>
+<script>
+    // 隐藏词云图容器
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('.word-cloud-container').style.display = 'none';
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    生成结果详情
+                    <a href="{{ url_for('main.generation_results') }}" class="layui-btn layui-btn-xs layui-btn-primary">
+                        <i class="layui-icon layui-icon-return"></i> 返回列表
+                    </a>
+                </div>
+                <div class="layui-card-body">
+                    <div class="generate-result-container">
+                        <div class="generate-result-info">
+                            <div class="generate-result-meta">
+                                <span>写作类型：{{ result.writing_type }}</span>
+                                <span>标签数量：{{ (result.tags|length) + (result.tag_infos|length) }}</span>
+                                <span>状态：
+                                    {% if result.status == 'completed' %}
+                                    <span class="layui-badge layui-bg-green">已完成</span>
+                                    {% elif result.status == 'processing' %}
+                                    <span class="layui-badge layui-bg-blue">处理中</span>
+                                    {% elif result.status == 'failed' %}
+                                    <span class="layui-badge">失败</span>
+                                    {% else %}
+                                    <span class="layui-badge layui-bg-gray">{{ result.status }}</span>
+                                    {% endif %}
+                                </span>
+                                <span>创建时间：{{ result.created_at }}</span>
+                                <span>更新时间：{{ result.updated_at }}</span>
+                                
+                                {% if result.status == 'completed' %}
+                                <button class="layui-btn layui-btn-sm layui-btn-normal" id="regenerateContent">
+                                    <i class="layui-icon layui-icon-refresh"></i> 重新生成
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div class="generate-result-tags">
+                                {% for tag in result.tags %}
+                                <span class="generate-result-tag">{{ tag }}</span>
+                                {% endfor %}
+                                
+                                {% for tag_info in result.tag_infos %}
+                                <span class="generate-result-tag">{{ tag_info.tag }}（{{ tag_info.info }}）</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        {% if result.status == 'completed' and result.content %}
+                        <div class="generate-result-content markdown-body" id="markdownContent">
+                            <!-- 内容将通过JavaScript渲染 -->
+                        </div>
+                        <script>
+                            // 使用前端渲染Markdown
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const content = {{ result.content|tojson }};
+                                document.getElementById('markdownContent').innerHTML = marked.parse(content);
+                            });
+                        </script>
+                        {% elif result.status == 'processing' %}
+                        <div class="generate-result-loading">
+                            <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
+                            <p>内容正在生成中，请稍候...</p>
+                            <p>您可以稍后刷新页面查看结果</p>
+                        </div>
+                        {% elif result.status == 'failed' %}
+                        <div class="generate-result-error">
+                            <i class="layui-icon layui-icon-close-fill"></i>
+                            <p>生成失败</p>
+                            <p>错误信息：{{ result.error or '未知错误' }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 重新生成按钮点击事件
+    $(document).ready(function() {
+        $('#regenerateContent').on('click', function() {
+            // 获取任务ID
+            const taskId = '{{ result._id }}';
+            
+            // 显示简单的文本提示
+            layer.msg('正在后台重新生成内容...', {
+                time: 3000  // 3秒后自动关闭
+            });
+            
+            // 准备请求数据
+            const requestData = {
+                tags: {{ result.tags|tojson }},
+                tag_infos: {{ result.tag_infos|tojson }},
+                writing_type: '{{ result.writing_type }}'
+            };
+            
+            // 发送请求
+            $.ajax({
+                url: '/api/tags/generate',
+                type: 'POST',
+                data: JSON.stringify(requestData),
+                contentType: 'application/json',
+                success: function(res) {
+                    if (res.code === 0) {
+                        // 重定向到新的结果页面
+                        window.location.href = '/generation/result/' + res.task_id;
+                    } else {
+                        layer.msg(res.msg || '重新生成失败');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    layer.msg('请求失败，请重试');
+                    console.error('请求失败:', status, error);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

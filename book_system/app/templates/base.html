@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="referrer" content="no-referrer">
+        <meta name="devtools-disable-sourcemap" content="true">
+        <title>{% block title %}基于Spark的书评分析系统{% endblock %}</title>
+        
+        <!-- 添加测试脚本 -->
+        <script>
+            console.log('=== 开始加载页面 ===');
+        </script>
+        
+        <!-- 先加载CSS -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='lib/layui/css/layui.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='lib/jquery-ui/jquery-ui.min.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        
+        <!-- 先加载基础库 -->
+        <script src="{{ url_for('static', filename='lib/jquery/jquery.min.js') }}"></script>
+        <script>console.log('jQuery 加载状态:', typeof jQuery);</script>
+        
+        <script src="{{ url_for('static', filename='lib/jquery-ui/jquery-ui.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='lib/layui/layui.js') }}"></script>
+        <script>console.log('Layui 加载状态:', typeof layui);</script>
+        
+        <!-- 加载 ECharts 相关文件 -->
+        <script src="{{ url_for('static', filename='lib/echarts/echarts.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='lib/echarts/echarts-wordcloud.min.js') }}"></script>
+        
+        <!-- 最后加载自定义JS -->
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/marked.min.js') }}"></script>
+        <!-- 添加额外的块，用于子模板添加自己的脚本 -->
+        {% block extra_scripts %}{% endblock %}
+    </head>
+<body class="layui-layout-body">
+    <!-- 加载动画 -->
+    <div class="loading">
+        <div class="loading-text">加载中...</div>
+    </div>
+
+    <!-- 自定义标签输入框（移到最外层） -->
+    <div class="custom-tag-input-group" style="display: none;">
+        <div class="custom-tag-header">
+            <span>添加自定义标签</span>
+            <button class="close-btn cancel-custom-tag-btn">×</button>
+        </div>
+        <div class="custom-tag-body">
+            <div class="layui-form-item">
+                <input type="text" id="customTagInput" 
+                       placeholder="输入标签，可选择添加说明信息，如：说明主体（台灯）" 
+                       class="layui-input custom-tag-input">
+            </div>
+            <div class="tag-input-tips">
+                <div class="tips-section">
+                    <h4>标签格式说明：</h4>
+                    <ul>
+                        <li>普通标签：直接输入，如"风景"</li>
+                        <li>带说明的标签：标签（说明信息），如"说明主体（台灯）"</li>
+                    </ul>
+                </div>
+                <div class="tips-section">
+                    <h4>写作类型提示：</h4>
+                    <ul>
+                        <li>说明文：建议添加说明主体信息</li>
+                        <li>记叙文：可添加时间、地点等信息</li>
+                        <li>议论文：可添加论述主题、论据等信息</li>
+                        <li>描述文：可添加描述对象等信息</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <button class="layui-btn layui-btn-normal add-custom-tag-btn">
+                    <i class="layui-icon layui-icon-add-1"></i> 添加标签
+                </button>
+                <button class="layui-btn layui-btn-primary cancel-custom-tag-btn">
+                    <i class="layui-icon layui-icon-close"></i> 取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-layout layui-layout-admin">
+        <!-- 头部 -->
+        <div class="layui-header">
+            <div class="layui-logo">Spark书评分析系统</div>
+            <ul class="layui-nav layui-layout-left">
+                <li class="layui-nav-item"><a href="{{ url_for('main.index') }}">首页</a></li>
+                <li class="layui-nav-item"><a href="{{ url_for('main.search') }}">图书搜索</a></li>
+                <li class="layui-nav-item"><a href="{{ url_for('main.upload') }}">文件上传</a></li>
+                <li class="layui-nav-item"><a href="{{ url_for('main.generation_results') }}">生成结果</a></li>
+            </ul>
+        </div>
+
+        <!-- 左侧标签面板 -->
+        <div class="left-tags-panel collapsed">
+            <!-- 标签选择和生成区域 -->
+            <div class="tag-section selected-tags-section">
+                <div class="tag-section-header">
+                    <div class="layui-form" style="width: 100%;">
+                        <select name="writing_type" lay-filter="writingType">
+                            <option value="">写作类型</option>
+                            <option value="narrative">叙述文</option>
+                            <option value="expository">说明文</option>
+                            <option value="argumentative">议论文</option>
+                            <option value="descriptive">描述文</option>
+                            <option value="commentary">评论文</option>
+                            <option value="creative_poetry">创意写作-诗歌</option>
+                            <option value="creative_novel">创意写作-小说</option>
+                            <option value="creative_script">创意写作-剧本</option>
+                        </select>
+                    </div>
+                    <div class="header-buttons">
+                        <button class="layui-btn layui-btn-xs layui-btn-normal" id="generateContent">
+                            <i class="layui-icon layui-icon-edit"></i>生成
+                        </button>
+                        <button class="layui-btn layui-btn-xs layui-btn-normal icon-btn" id="addCustomTag">
+                            <i class="layui-icon layui-icon-add-1"></i>
+                        </button>
+                        <button class="layui-btn layui-btn-xs layui-btn-normal icon-btn" id="clearTags">
+                            <i class="layui-icon layui-icon-delete"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="tag-section-content" id="selectedTags">
+                    <!-- 已选标签将在这里显示 -->
+                </div>
+            </div>
+
+
+
+            <!-- 推荐标签框 -->
+            <div class="tag-section recommended-tags-section">
+                <div class="tag-section-header">
+                    <span>推荐标签</span>
+                    <button class="layui-btn layui-btn-xs layui-btn-normal" id="refreshTags">
+                        刷新
+                    </button>
+                </div>
+                <div class="tag-section-content" id="recommendedTags">
+                    <!-- 推荐标签将在这里显示 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 面板切换按钮 -->
+        <div class="panel-toggle">
+            <div class="custom-icon">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+
+        <!-- 内容主体区域 -->
+        <div class="layui-body">
+            <div class="main-content layui-anim layui-anim-fadeIn">
+                <!-- 词云图容器 -->
+                <div class="word-cloud-container" id="wordCloudChart"></div>
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 生成结果弹窗 -->
+    <div class="generate-result-modal">
+        <div class="generate-result-content">
+            <div class="generate-result-header">
+                <span>生成结果</span>
+                <button class="close-btn">×</button>
+            </div>
+            <div class="generate-result-body">
+                <textarea id="generatedContent" class="layui-textarea" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- 在body结束标签前添加通知容器 -->
+    <div class="notification-container" id="notificationContainer">
+        <!-- 通知将在这里动态添加 -->
+    </div>
+
+    <script>
+        // 确保通知系统在页面加载完成后初始化，但只初始化一次
+        $(document).ready(function() {
+            console.log('页面加载完成，检查通知系统');
+            if (window.notificationSystem && !window.notificationSystem.initialized) {
+                console.log('通知系统存在且未初始化，开始初始化');
+                window.notificationSystem.init();
+            } else if (window.notificationSystem && window.notificationSystem.initialized) {
+                console.log('通知系统已经初始化过，跳过');
+            } else {
+                console.warn('通知系统不存在，无法初始化');
+            }
+        });
+
+        // 在页面卸载时销毁通知系统
+        $(window).on('beforeunload', function() {
+            if (window.notificationSystem && window.notificationSystem.initialized) {
+                window.notificationSystem.destroy();
+            }
+        });
+    </script>
+
+    {% block script %}{% endblock %}
+</body>
+</html>

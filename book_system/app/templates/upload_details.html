@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}文件详情 - {{ upload.filename }}{% endblock %}
+
+{% block content %}
+<div class="layui-container">
+    <!-- 返回按钮 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-xs12">
+            <a href="{{ url_for('main.upload') }}" class="layui-btn layui-btn-primary">
+                <i class="layui-icon layui-icon-return"></i> 返回
+            </a>
+        </div>
+    </div>
+
+    <!-- 基本信息卡片 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <span class="card-header-text">文件信息</span>
+                </div>
+                <div class="layui-card-body">
+                    <div class="layui-row">
+                        <div class="layui-col-md4">
+                            <div class="info-item">
+                                <label>文件名：</label>
+                                <span>{{ upload.filename }}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>文件大小：</label>
+                                <span>{{ upload.size }}</span>
+                            </div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="info-item">
+                                <label>上传时间：</label>
+                                <span>{{ upload.upload_time }}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>总记录数：</label>
+                                <span>{{ upload.total_records }}</span>
+                            </div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="info-item">
+                                <label>处理状态：</label>
+                                <span class="status-badge status-{{ upload.status }}">
+                                    {% if upload.status == 'queued' %}
+                                        排队中 ({{ upload.queue_position }})
+                                    {% elif upload.status == 'processing' %}
+                                        处理中
+                                    {% elif upload.status == 'completed' %}
+                                        已完成
+                                    {% elif upload.status == 'failed' %}
+                                        失败
+                                    {% else %}
+                                        {{ upload.status }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <label>书籍数量：</label>
+                                <span>{{ upload.book_ids|length if upload.book_ids else 0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if upload.error_message %}
+                    <div class="layui-row mt-10">
+                        <div class="layui-col-md12">
+                            <div class="info-item">
+                                <label>错误信息：</label>
+                                <span class="error-text">{{ upload.error_message }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if upload.status == 'completed' %}
+    <!-- 词云图表 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <span class="card-header-text">标签词云</span>
+                </div>
+                <div class="layui-card-body">
+                    <div id="wordcloud" class="word-cloud-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- 书籍列表 -->
+<div class="layui-row mt-20">
+    <div class="layui-col-md12">
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <span class="card-header-text">包含的书籍 ({{ books|length }})</span>
+            </div>
+            <div class="layui-card-body">
+                {% if books %}
+                <div class="layui-row layui-col-space15">
+                    {% for book in books %}
+                    <div class="layui-col-md3">
+                        <a href="{{ url_for('main.book_detail', id=book.book_id, from_page='upload_details', file_id=upload._id) }}" class="book-card-link">
+                            <div class="book-card">
+                                <div class="book-card-inner">
+                                    <div class="book-cover">
+                                        <img src="{{ book.cover_url if book.cover_url else url_for('static', filename='images/default-cover.jpg') }}" 
+                                             alt="{{ book.book_title }}"
+                                             onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-cover.jpg') }}';">
+                                    </div>
+                                    <div class="book-info">
+                                        <div class="book-title">{{ book.book_title }}</div>
+                                        <div class="book-author">{{ book.author }}</div>
+                                        <div class="book-pub">{{ book.pub_year }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-result">
+                    <p class="no-data">暂无书籍数据</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if upload.status == 'completed' %}
+<script>
+    window.wordCloudData = {{ word_cloud_data | tojson | safe }};
+</script>
+<script src="{{ url_for('static', filename='js/upload_details.js') }}"></script>
+{% endif %}
+{% endblock %}

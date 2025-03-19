@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.book_title }} - 评论列表{% endblock %}
+
+{% block content %}
+<div class="layui-container">
+    <!-- 书籍信息 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <a href="{{ url_for('main.book_detail', id=book.book_id) }}" class="layui-btn layui-btn-primary layui-btn-sm return-btn">
+                        返回书籍详情
+                    </a>
+                    <span>{{ book.book_title }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 筛选条件 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">筛选条件</div>
+                <div class="layui-card-body">
+                    <form class="layui-form" method="get">
+                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">情感倾向</label>
+                                <div class="layui-input-inline">
+                                    <select name="sentiment">
+                                        <option value="">全部</option>
+                                        <option value="positive" {% if filters.sentiment == 'positive' %}selected{% endif %}>正面</option>
+                                        <option value="negative" {% if filters.sentiment == 'negative' %}selected{% endif %}>负面</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <button class="layui-btn" lay-submit>筛选</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 评论列表 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">评论列表 (共{{ total }}条)</div>
+                <div class="layui-card-body">
+                    {% if comments %}
+                        {% for comment in comments %}
+                        <div class="comment-item">
+                            <div class="comment-content">{{ comment.content }}</div>
+                            <div class="comment-meta">
+                                <span class="sentiment-badge sentiment-{{ 'positive' if comment.sentiment == '正面' else 'negative' }}">
+                                    {{ comment.sentiment }}
+                                </span>
+                                {% if comment.tags %}
+                                <span class="tags">
+                                    {% for tag in comment.tags %}
+                                    <span class="layui-badge-rim draggable-tag" data-tag="{{ tag }}">{{ tag }}</span>
+                                    {% endfor %}
+                                </span>
+                                {% endif %}
+                                <span class="time">{{ comment.created_at }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- 分页 -->
+                        <div style="text-align: center; margin-top: 30px; padding: 20px 0; border-top: 1px solid #eee;">
+                            <div id="page"></div>
+                        </div>
+                    {% else %}
+                        <div class="empty-result">
+                            <i class="layui-icon layui-icon-face-cry"></i>
+                            <p>暂无评论数据</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+layui.use(['form', 'laypage'], function(){
+    var form = layui.form;
+    var laypage = layui.laypage;
+    
+    // 分页配置
+    laypage.render({
+        elem: 'page',
+        count: {{ total }},
+        limit: {{ per_page }},
+        curr: {{ page }},
+        limits: [10, 20, 50, 100],
+        layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],  // 简化布局
+        theme: '#1E9FFF',  // 主题色
+        jump: function(obj, first){
+            if(!first){
+                var params = new URLSearchParams(window.location.search);
+                params.set('page', obj.curr);
+                params.set('per_page', obj.limit);
+                window.location.href = '?' + params.toString();
+            }
+        }
+    });
+    
+    // 处理筛选表单重置
+    $('button[type="reset"]').click(function(e){
+        e.preventDefault();
+        window.location.href = '{{ url_for("main.book_comments", book_id=book.book_id) }}';
+    });
+});
+</script>
+{% endblock %}

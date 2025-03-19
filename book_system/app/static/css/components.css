@@ -1,0 +1,871 @@
+/* ===== 1. 加载动画组件 ===== */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(55, 39, 28, 0.7);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 18px;
+}
+
+/* ===== 2. 搜索框组件 ===== */
+.search-box {
+    max-width: 1200px;
+    width: 80%;
+    margin: 40px auto;
+    padding: 20px;
+    background: #37271C;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-box .layui-input-group {
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    padding: 5px;
+}
+
+.search-box .layui-input {
+    height: 50px;
+    font-size: 18px;
+    background-color: #ffffff;
+    border: none;
+    color: #37271C;
+    flex: 1;
+    padding: 0 20px;
+}
+/* ===== 3. 上传区域组件 ===== */
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #fff;
+    margin-bottom: 20px;
+}
+
+.upload-area:hover {
+    border-color: #9F6A38;
+    background-color: rgba(159, 106, 56, 0.02);
+}
+
+.upload-area.dragover {
+    border-color: #9F6A38;
+    background-color: rgba(159, 106, 56, 0.05);
+}
+
+.upload-icon {
+    margin-bottom: 15px;
+}
+
+.upload-icon i {
+    font-size: 48px;
+    color: #9F6A38;
+}
+
+.upload-text {
+    color: #37271C;
+    font-size: 16px;
+}
+
+.upload-hint {
+    color: #999;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* ===== 4. 书籍卡片组件 ===== */
+.book-card {
+    position: relative;
+    height: 400px;
+    transition: all 0.3s ease;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.book-card-inner {
+    height: 100%;
+    width: 100%;
+    padding: 15px;
+}
+
+.book-cover {
+    height: 250px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-info {
+    padding: 10px 0;
+}
+
+.book-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #37271C;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.book-author, .book-pub {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ===== 5. 书籍封面3D组件 ===== */
+.book-cover-3d {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.book-cover-3d:hover {
+    transform: scale(1.05);
+}
+
+.book-cover-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===== 6. 标签组件 ===== */
+.tag-section {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--panel-bg);
+    position: relative;
+    z-index: 1;
+    height: 370px;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tag-section-header {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background: rgba(159, 106, 56, 0.1);
+    border-radius: 4px;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(159, 106, 56, 0.2);
+}
+
+.tag-section-header span {
+    color: #F5E6D3;
+    font-weight: 500;
+}
+
+.tag-section-content {
+    height: calc(100% - 80px);
+    overflow-y: auto;
+    padding: 5px;
+    margin-top: 10px;
+}
+
+.tag-section-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tag-section-content::-webkit-scrollbar-track {
+    background: rgba(55, 39, 28, 0.05);
+    border-radius: 2px;
+}
+
+.tag-section-content::-webkit-scrollbar-thumb {
+    background: #9F6A38;
+    border-radius: 2px;
+}
+
+.tag-section-content::-webkit-scrollbar-thumb:hover {
+    background: #37271C;
+}
+
+.selected-tag, 
+.recommended-tag {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #37271C;
+    color: #F5E6D3;
+    border-radius: 20px;
+    margin: 0 8px 8px 0;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    border: 1px solid #9F6A38;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.selected-tag:hover, 
+.recommended-tag:hover {
+    background: #9F6A38;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* 标签删除按钮样式 */
+.selected-tag .tag-remove {
+    margin-left: 6px;
+    font-size: 14px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.selected-tag .tag-remove:hover {
+    opacity: 1;
+}
+
+/* 标签计数样式 */
+.tag-count {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-left: 4px;
+}
+
+/* 标签选择面板样式 */
+.left-tags-panel {
+    background: linear-gradient(135deg, #37271C, #5f4d3d);
+}
+
+/* ===== 7. 评论组件 ===== */
+.comment-item {
+    padding: 15px;
+    border-bottom: 1px solid rgba(55, 39, 28, 0.1);
+    transition: background-color 0.3s;
+    background-color: #ffffff;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* ===== 8. 情感标签组件 ===== */
+.sentiment-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-right: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.sentiment-正面 {
+    background-color: #37271C;
+    color: #F5E6D3;
+    border: 1px solid #9F6A38;
+}
+
+.sentiment-负面 {
+    background-color: #F5E6D3;
+    color: #37271C;
+    border: 1px solid #9F6A38;
+}
+
+.sentiment-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.comment-item .sentiment-badge {
+    font-size: 12px;
+    padding: 3px 10px;
+}
+/* ===== 9. 拖拽标签组件 ===== */
+.draggable-tag {
+    padding: 6px 14px; 
+    font-size: 12px;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #F5E6D3;
+    color: #37271C;
+    border-radius: 16px;
+    border: 1px solid #9F6A38;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    height: 28px;
+    box-sizing: border-box;
+}
+
+.draggable-tag:hover {
+    background: #9F6A38;
+    color: #F5E6D3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.draggable-tag.dragging {
+    opacity: 0.5;
+    background: #9F6A38;
+    color: #F5E6D3;
+}
+
+/* ===== 10. 词云组件 ===== */
+.word-cloud-container {
+    width: 100%;
+    height: 400px;
+    margin: 0;
+    padding: 0;
+}
+
+/* 词云容器样式 */
+.main-page-wordcloud {
+    height: 400px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 词云父容器样式 */
+.layui-card-body {
+    padding: 0 !important;
+    height: 400px !important;
+}
+/* ===== 11. 生成结果弹窗样式 ===== */
+.custom-layer .layui-layer-title {
+    background: linear-gradient(135deg, #37271C, #5f4d3d) !important;
+    color: #F5E6D3 !important;
+    border-bottom: 1px solid #9F6A38 !important;
+    padding: 15px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.custom-layer .layui-layer-content {
+    background-color: #F5E6D3;
+    padding: 0;
+}
+
+.generate-result-container {
+    padding: 20px;
+    background: linear-gradient(135deg, #F5E6D3, #fff);
+}
+
+.generate-result-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding: 0 5px;
+}
+
+.generate-result-content {
+    width: 100%;
+    background: #fff !important;
+    border: 1px solid #9F6A38 !important;
+    color: #37271C !important;
+    font-size: 14px !important;
+    line-height: 1.8 !important;
+    padding: 20px !important;
+    border-radius: 8px;
+    resize: none;
+    box-shadow: inset 0 2px 4px rgba(55, 39, 28, 0.1);
+    transition: all 0.3s ease;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+/* Markdown样式 */
+.generate-result-content h1,
+.generate-result-content h2,
+.generate-result-content h3,
+.generate-result-content h4,
+.generate-result-content h5,
+.generate-result-content h6 {
+    color: #37271C;
+    margin: 15px 0;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.generate-result-content h1 { font-size: 24px; }
+.generate-result-content h2 { font-size: 20px; }
+.generate-result-content h3 { font-size: 18px; }
+.generate-result-content h4 { font-size: 16px; }
+.generate-result-content h5 { font-size: 14px; }
+.generate-result-content h6 { font-size: 13px; }
+
+.generate-result-content p {
+    margin: 10px 0;
+    line-height: 1.8;
+}
+
+.generate-result-content ul,
+.generate-result-content ol {
+    padding-left: 20px;
+    margin: 10px 0;
+}
+
+.generate-result-content li {
+    margin: 5px 0;
+}
+
+.generate-result-content code {
+    background: rgba(159, 106, 56, 0.1);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.generate-result-content pre {
+    background: rgba(159, 106, 56, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.generate-result-content pre code {
+    background: none;
+    padding: 0;
+}
+
+.generate-result-content blockquote {
+    border-left: 4px solid #9F6A38;
+    padding: 10px 15px;
+    margin: 10px 0;
+    background: rgba(159, 106, 56, 0.05);
+    color: #666;
+}
+
+.generate-result-content a {
+    color: #9F6A38;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.generate-result-content a:hover {
+    color: #37271C;
+    text-decoration: underline;
+}
+
+.generate-result-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+}
+
+.generate-result-content th,
+.generate-result-content td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.generate-result-content th {
+    background: rgba(159, 106, 56, 0.1);
+    font-weight: 600;
+}
+
+.generate-result-content tr:nth-child(even) {
+    background: rgba(159, 106, 56, 0.02);
+}
+
+/* 滚动条样式 */
+.generate-result-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.generate-result-content::-webkit-scrollbar-track {
+    background: rgba(55, 39, 28, 0.05);
+    border-radius: 4px;
+}
+
+.generate-result-content::-webkit-scrollbar-thumb {
+    background: #9F6A38;
+    border-radius: 4px;
+}
+
+.generate-result-content::-webkit-scrollbar-thumb:hover {
+    background: #37271C;
+}
+
+/* ===== 12. 响应式适配 ===== */
+@media screen and (max-width: 768px) {
+    .book-info-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .book-meta {
+        width: 100%;
+        text-align: center;
+    }
+
+    .book-cover-modal-content {
+        width: 90%;
+        max-width: 300px;
+    }
+
+    .upload-area {
+        padding: 20px;
+    }
+    
+    .upload-icon i {
+        font-size: 36px;
+    }
+    
+    .upload-text {
+        font-size: 14px;
+    }
+    
+    .upload-hint {
+        font-size: 12px;
+    }
+}
+
+/* ===== 13. 滚动条美化 ===== */
+.generate-result-content::-webkit-scrollbar,
+.tag-section-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.generate-result-content::-webkit-scrollbar-track,
+.tag-section-content::-webkit-scrollbar-track {
+    background: rgba(55, 39, 28, 0.05);
+    border-radius: 4px;
+}
+
+.generate-result-content::-webkit-scrollbar-thumb,
+.tag-section-content::-webkit-scrollbar-thumb {
+    background: #9F6A38;
+    border-radius: 4px;
+}
+
+.generate-result-content::-webkit-scrollbar-thumb:hover,
+.tag-section-content::-webkit-scrollbar-thumb:hover {
+    background: #37271C;
+}
+
+/* ===== 14. 书籍详情页组件 ===== */
+.book-info-layout {
+    display: flex;
+    gap: 30px;
+    padding: 20px;
+}
+
+.book-meta {
+    flex: 1;
+}
+
+.book-meta h2 {
+    font-size: 24px;
+    color: #37271C;
+    margin-bottom: 20px;
+}
+
+.book-meta p {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #666;
+}
+
+.book-meta strong {
+    color: #37271C;
+    margin-right: 10px;
+}
+
+/* 书籍封面3D效果 */
+.book-cover-3d {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+}
+
+.book-cover-3d:hover {
+    transform: scale(1.05);
+}
+
+/* 封面模态框组件样式 */
+.book-cover-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    justify-content: center;
+    align-items: center;
+}
+
+.book-cover-modal.active {
+    opacity: 1;
+}
+
+.book-cover-modal-content {
+    position: relative;
+    width: 80%;
+    max-width: 400px;
+    height: auto;
+    margin: auto;
+    perspective: 1000px;
+}
+
+.book-cover-3d-large {
+    transition: transform 0.3s ease;
+    transform-style: preserve-3d;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.book-cover-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.book-cover-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+/* 调整书籍详情页中封面的大小 */
+.book-info-layout .book-cover-3d {
+    flex-shrink: 0;
+    width: 240px;
+    height: 320px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 下拉列表样式补充 */
+.layui-form-select dl {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #F5E6D3;
+    border: 1px solid #9F6A38;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 4px rgba(55, 39, 28, 0.1);
+}
+
+.layui-form-select dl dd {
+    height: auto;
+    line-height: 1.5;
+    padding: 8px 10px;
+    color: #37271C;
+}
+
+.layui-form-select dl dd:hover {
+    background-color: rgba(159, 106, 56, 0.1);
+}
+
+.layui-form-select dl dd.layui-this {
+    background-color: #9F6A38;
+    color: #F5E6D3;
+}
+/* ===== 15. 自定义标签输入组件 ===== */
+.custom-tag-input-group {
+    position: absolute;  
+    z-index: 1002;
+    background: #F5E6D3;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    border: 1px solid #9F6A38;
+    width: 300px;  
+    display: none;
+}
+
+.custom-tag-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(159, 106, 56, 0.2);
+}
+
+.custom-tag-header span {
+    color: #37271C;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.custom-tag-header .close-btn {
+    background: none;
+    border: none;
+    color: #9F6A38;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: all 0.3s ease;
+}
+
+.custom-tag-header .close-btn:hover {
+    color: #37271C;
+}
+
+.custom-tag-body {
+    position: relative;
+}
+
+.custom-tag-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1001;
+}
+
+.custom-tag-input {
+    margin-bottom: 10px !important;
+    border: 1px solid #9F6A38 !important;
+    background: #fff !important;
+    color: #37271C !important;
+}
+
+.tag-input-tips {
+    font-size: 12px;
+    color: #666;
+    margin-top: 8px;
+    background: rgba(159, 106, 56, 0.05);
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(159, 106, 56, 0.2);
+}
+
+.tag-input-tips p {
+    color: #37271C;
+    font-weight: 500;
+    margin: 5px 0;
+}
+
+.tag-input-tips ul {
+    margin: 5px 0;
+    padding-left: 20px;
+}
+
+.tag-input-tips li {
+    margin: 3px 0;
+    color: #666;
+}
+
+.layui-form-item:last-child {
+    margin-bottom: 0;
+}
+
+.cancel-custom-tag-btn {
+    margin-left: 10px;
+}
+
+/* 输入框占位符样式 */
+.custom-tag-input::placeholder {
+    color: #999;
+    font-size: 13px;
+}
+
+/* 按钮样式调整 */
+.add-custom-tag-btn,
+.cancel-custom-tag-btn {
+    height: 32px;
+    line-height: 32px;
+    padding: 0 15px;
+    font-size: 13px;
+}
+
+/* 标签输入组动画 */
+.custom-tag-input-group {
+    transition: all 0.3s ease;
+}
+
+.tag-input-tips {
+    display: none;
+    transition: all 0.3s ease;
+}
+
+/* 深色主题适配 */
+.left-tags-panel .custom-tag-input-group {
+    background: #37271C;
+    border-color: #9F6A38;
+}
+
+.left-tags-panel .custom-tag-input {
+    background: #F5E6D3 !important;
+    border-color: #9F6A38 !important;
+}
+
+.left-tags-panel .tag-input-tips {
+    background: rgba(245, 230, 211, 0.05);
+    border-color: rgba(159, 106, 56, 0.3);
+}
+
+.left-tags-panel .tag-input-tips p,
+.left-tags-panel .tag-input-tips li {
+    color: #F5E6D3;
+}

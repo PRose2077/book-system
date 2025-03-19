@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 书评分析系统{% endblock %}
+
+{% block content %}
+<div class="layui-container">
+    <!-- 搜索框 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <form class="layui-form search-box" action="{{ url_for('main.search') }}" method="get">
+                <div class="layui-input-group">
+                    <input type="text" name="keyword" placeholder="输入书名、作者或关键词" class="layui-input">
+                    <div class="layui-input-suffix">
+                        <button class="layui-btn">搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 词云图表容器 -->
+    <div class="layui-row mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <h2>热门标签</h2>
+                </div>
+                <div class="layui-card-body">
+                    <div id="wordcloud" class="word-cloud-container main-page-wordcloud"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 随机推荐书籍 -->
+    <div class="layui-row layui-col-space15 mt-20">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">随机推荐</div>
+                <div class="layui-card-body">
+                    <div class="layui-row layui-col-space15">
+                        {% for book in random_books %}
+                        <div class="layui-col-md3">
+                            <a href="{{ url_for('main.book_detail', id=book.book_id) }}" class="book-card-link">
+                                <div class="book-card">
+                                    <div class="book-card-inner">
+                                        <div class="book-cover">
+                                            <img src="{{ book.cover_url if book.cover_url else url_for('static', filename='images/default-cover.jpg') }}" 
+                                                 alt="{{ book.book_title }}" 
+                                                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-cover.jpg') }}';">
+                                        </div>
+                                        <div class="book-info">
+                                            <div class="book-title">{{ book.book_title }}</div>
+                                            <div class="book-author">{{ book.book_author }}</div>
+                                            <div class="book-pub">{{ book.book_press }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+layui.use(['layer'], function(){
+    var $ = layui.jquery;
+    var layer = layui.layer;
+    
+    
+    function initWordCloud() {
+        var container = document.getElementById('wordcloud');
+        console.log('词云容器:', container);
+        
+        if (!container) {
+            console.error('找不到词云容器');
+            return;
+        }
+        
+        try {
+            var wordCloudChart = echarts.init(container);
+            
+            var option = {
+                tooltip: {
+                    show: true,
+                    formatter: function(params) {
+                        return params.data.name + ': ' + Math.round(params.data.value);
+                    }
+                },
+                series: [{
+                    type: 'wordCloud',
+                    shape: 'rect',
+                    width: '90%',
+                    height: '90%',
+                    left: 'center',
+                    top: 'center',
+                    sizeRange: [14, 80],
+                    rotationRange: [-45, 45],
+                    rotationStep: 45,
+                    gridSize: 8,
+                    drawOutOfBound: false,
+                    layoutAnimation: true,
+                    textStyle: {
+                        fontFamily: 'sans-serif',
+                        fontWeight: 'bold',
+                        color: function () {
+                            return 'rgb(' + [
+                                Math.round(Math.random() * 160),
+                                Math.round(Math.random() * 160),
+                                Math.round(Math.random() * 160)
+                            ].join(',') + ')';
+                        }
+                    },
+                    emphasis: {
+                        focus: 'self',
+                        textStyle: {
+                            shadowBlur: 10,
+                            shadowColor: '#333'
+                        }
+                    },
+                    data: {{ word_cloud_data | tojson | safe }}
+                }]
+            };
+            
+            // 应用配置
+            wordCloudChart.setOption(option);
+            console.log('词云配置已应用');
+            
+            // 添加点击事件
+            wordCloudChart.on('click', function(params) {
+                if (params.componentType === 'series') {
+                    // 使用全局的addGlobalTag函数添加标签
+                    window.addGlobalTag(params.data.name);
+                    // 显示添加成功提示
+                    layer.msg('已添加标签：' + params.data.name);
+                    // 展开左侧标签面板（如果是收起状态）
+                    $('.left-tags-panel').removeClass('collapsed');
+                }
+            });
+            
+            // 监听窗口大小变化
+            window.addEventListener('resize', function() {
+                wordCloudChart.resize();
+            });
+            
+        } catch (error) {
+            console.error('词云初始化失败:', error);
+            console.error('错误堆栈:', error.stack);
+        }
+    }
+    
+    // 确保页面加载完成后初始化
+    $(window).on('load', function() {
+        console.log('页面加载完成，准备初始化词云');
+        setTimeout(initWordCloud, 300);
+    });
+});
+</script>
+
+<style>
+
+</style>
+{% endblock %}

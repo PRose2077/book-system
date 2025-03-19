@@ -1,0 +1,64 @@
+/* 通用布局工具类 */
+.mt-20 { margin-top: 20px; }
+.mt-10 { margin-top: 10px; }
+.mb-10 { margin-bottom: 10px; }
+.ml-10 { margin-left: 10px; }
+.mr-10 { margin-right: 10px; }
+.text-center { text-align: center; }
+
+/* 状态标签 */
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 12px;
+}
+
+.status-badge.status-pending {
+    background-color: #FFB800;
+    color: #fff;
+}
+
+.status-badge.status-processing {
+    background-color: #1E9FFF;
+    color: #fff;
+}
+
+.status-badge.status-completed {
+    background-color: #5FB878;
+    color: #fff;
+}
+
+.status-badge.status-failed {
+    background-color: #FF5722;
+    color: #fff;
+}
+
+/* 情感倾向标签 */
+.sentiment-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+.sentiment-正面 {
+    background-color: #91cc75;
+    color: #fff;
+}
+
+.sentiment-负面 {
+    background-color: #ee6666;
+    color: #fff;
+}
+
+/* 空状态样式 */
+.empty-result {
+    text-align: center;
+    padding: 30px 0;
+}
+
+.no-data {
+    color: #999;
+    font-size: 16px;
+}

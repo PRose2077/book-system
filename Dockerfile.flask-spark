@@ -1,0 +1,43 @@
+FROM s1mplecc/spark-hadoop:3
+
+USER root
+
+# 使用清华源
+RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ buster main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ buster-updates main contrib non-free" >> /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security buster/updates main contrib non-free" >> /etc/apt/sources.list
+
+# 安装 Python 和必要的包
+RUN apt-get update && apt-get install -y \
+    fonts-wqy-zenhei \
+    python3 \
+    python3-pip \
+    python3-dev \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# 配置 pip 使用清华源
+RUN pip3 config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+
+# 创建工作目录
+WORKDIR /app
+
+# 复制 requirements.txt
+COPY ./book_system/requirements.txt .
+
+# 安装 Python 包
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# 下载 MongoDB Spark Connector
+RUN wget https://repo1.maven.org/maven2/org/mongodb/spark/mongo-spark-connector_2.12/3.0.1/mongo-spark-connector_2.12-3.0.1.jar -P /opt/bitnami/spark/jars/
+
+# 创建 Jupyter 工作目录
+RUN mkdir -p /opt/notebooks
+
+
+# 复制项目文件到容器中
+COPY ./book_system /app
+
+# 暴露 Flask 和 Jupyter 端口
+EXPOSE 5000 8888
+

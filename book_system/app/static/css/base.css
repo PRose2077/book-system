@@ -1,0 +1,231 @@
+/* ===== 1. 重置与基础样式 ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #9F6A38;
+    --secondary-color: #37271C;
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --border-color: #e6e6e6;
+    --header-gradient-start: #4A3C39;
+    --header-gradient-end: #8C7B74;
+    --panel-bg: #5f635b;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ===== 2. 布局组件 ===== */
+.layui-layout-admin .layui-header {
+    background: linear-gradient(to right, var(--header-gradient-start), var(--header-gradient-end));
+    height: 60px;
+    box-shadow: 0 2px 10px rgba(74, 60, 57, 0.15);
+    position: fixed;
+    z-index: 1000;
+    width: 100%;
+}
+
+.layui-logo {
+    color: var(--bg-color);
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 60px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+/* ===== 3. 导航栏样式 ===== */
+.layui-nav {
+    background: transparent;
+    padding: 0 20px;
+}
+
+.layui-nav .layui-nav-item > a {
+    color: var(--bg-color);
+    font-size: 1rem;
+    padding: 0 20px;
+    transition: all 0.3s ease;
+}
+
+.layui-nav .layui-nav-item > a:hover {
+    color: var(--primary-color);
+}
+
+/* ===== 4. 主体内容区域样式 ===== */
+.layui-layout-admin .layui-body {
+    position: fixed;
+    left: 250px;
+    right: 0;
+    top: 60px;
+    bottom: 0;
+    overflow-y: auto;
+    background-color: var(--bg-color);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 15px;
+}
+
+.main-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: calc(100vh - 90px);
+}
+
+/* ===== 5. 左侧面板基础样式 ===== */
+.left-tags-panel {
+    position: fixed;
+    left: 0;
+    top: 60px;
+    bottom: 0;
+    width: 250px;
+    background: linear-gradient(135deg, #37271C, #5f4d3d);
+    box-shadow: 2px 0 8px var(--shadow-color);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-tags-panel.collapsed {
+    transform: translateX(-250px);
+}
+
+/* 面板收起时主体内容区域样式 */
+.left-tags-panel.collapsed ~ .layui-body {
+    left: 0;
+}
+/* ===== 6. 面板切换按钮样式 ===== */
+.panel-toggle {
+    position: fixed;
+    left: 250px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 60px;
+    background: var(--panel-bg);
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg-color);
+    box-shadow: 2px 0 4px var(--shadow-color);
+    transition: left 0.3s ease;
+    z-index: 999;
+}
+
+.panel-toggle:hover {
+    background-color: var(--primary-color);
+}
+
+/* 面板收起状态下的切换按钮位置 */
+.left-tags-panel.collapsed ~ .panel-toggle {
+    left: 0;
+}
+
+.custom-icon {
+    width: 20px;
+    height: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.custom-icon::before,
+.custom-icon::after,
+.custom-icon div {
+    content: '';
+    width: 100%;
+    height: 2px;
+    background-color: var(--bg-color);
+}
+/* ===== 7. Layui基础组件样式 ===== */
+.layui-btn {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.layui-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.layui-input,
+.layui-textarea {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.layui-input:focus,
+.layui-textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(159, 106, 56, 0.1);
+}
+
+/* ===== 8. 加载动画 ===== */
+.loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(55, 39, 28, 0.8);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.loading-text {
+    color: var(--bg-color);
+    font-size: 1.125rem;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+/* ===== 9. 响应式适配 ===== */
+@media screen and (max-width: 768px) {
+    .left-tags-panel {
+        transform: translateX(-250px);
+    }
+    
+    .layui-body {
+        left: 0 !important;
+        width: 100% !important;
+    }
+    
+    .layui-nav-item {
+        display: none;
+    }
+    
+    .layui-logo {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .panel-toggle {
+        left: 0;
+    }
+    
+    .left-tags-panel:not(.collapsed) ~ .panel-toggle {
+        left: 250px;
+    }
+}
+
+/* ===== 10. 动画效果 ===== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.layui-anim-fadeIn {
+    animation: fadeIn 0.3s ease-in-out;
+}
