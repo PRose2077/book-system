@@ -139,12 +139,18 @@ def save_results_to_csv(results, book_id):
     project_root = os.path.dirname(current_dir)  # 只向上一级到项目根目录
     output_dir = os.path.join(project_root, 'docs', 'data', 'single_books')
     os.makedirs(output_dir, exist_ok=True)
-    
-    filename = os.path.join(output_dir, f'book_{book_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
+
+    book_title = results['book_info']['title']
+    # 清理书名以用作文件名37074780
+    safe_book_title = "".join(x for x in book_title if x.isalnum() or x == ' ').replace(' ', '_')
+    # 限制文件名长度
+    safe_book_title = safe_book_title[:50] 
+
+    filename = os.path.join(output_dir, f'{safe_book_title}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
     
     with open(filename, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['book_id', 'book_title', 'author', 'cover_url', 'publisher', 'pub_year', 'book_url', 
+        writer.writerow(['book_id', 'book_title', 'author', 'cover_url', 'publisher', 'pub_year', 'book_url',
                          'comment_id', 'user', 'content', 'rating'])
         
         book_info = results['book_info']
