@@ -27,20 +27,30 @@ def run_word_cloud_task() -> bool:
         # 创建SparkSession
         spark = SparkSession.builder \
             .appName("WordCloudGenerator") \
+            .config("spark.driver.memory", "2G") \
+            .config("spark.executor.cores", "2") \
+            .config("spark.executor.instances", "4") \
+            .config("spark.executor.memory", "1G") \
+            .config("spark.sql.shuffle.partitions", "8") \
             .config("spark.mongodb.read.connection.uri", MONGO_URI) \
             .config("spark.mongodb.write.connection.uri", MONGO_URI) \
             .config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector_2.12:10.4.0") \
             .config("spark.mongodb.read.readPreference.name", "primaryPreferred") \
             .config("spark.mongodb.write.writeConcern.w", "majority") \
+            .config("spark.memory.offHeap.enabled", "true") \
+            .config("spark.memory.offHeap.size", "1g") \
             .getOrCreate()
 
         logger.info("Spark会话创建成功")
 
-        # 从MongoDB读取评论数据
+        # 从MongoDB读取评论数据，只选择必要字段
         comments_df = spark.read \
             .format("mongodb") \
             .option("database", MONGO_DATABASE) \
             .option("collection", "comments_tags") \
+            .option("pipeline", """[
+                {"$project": {"labels": 1, "sentiment": 1, "book_id": 1, "_id": 0}}
+            ]""") \
             .load()
 
         # 打印数据结构，用于调试
@@ -54,7 +64,8 @@ def run_word_cloud_task() -> bool:
                 "sentiment",
                 "book_id"  # 添加book_id用于后续可能的分组
             ) \
-            .where(col("tag").isNotNull())
+            .where(col("tag").isNotNull()) \
+            .cache()  # 缓存中间结果以提高性能
 
         # 计算标签权重
         weighted_tags = tags_df \
@@ -71,7 +82,8 @@ def run_word_cloud_task() -> bool:
                 (col("book_count") * 0.3)  # 书籍覆盖度权重
             ) \
             .orderBy(desc("weight")) \
-            .limit(200)
+            .limit(200) \
+            .cache()  # 缓存结果以提高后续处理性能
 
         # 获取权重统计
         weight_stats = weighted_tags.agg(
@@ -93,13 +105,17 @@ def run_word_cloud_task() -> bool:
         else:
             weighted_tags = weighted_tags.withColumn("normalized_weight", lit(50.0))
 
-        # 收集标签数据
+        # 收集标签数据，只选择必要字段
         tags_list = weighted_tags.select(
             col("tag").alias("name"),
             col("normalized_weight").cast("double").alias("value"),
             col("total_count"),
             col("book_count")
         ).collect()
+
+        # 释放缓存以节省内存
+        tags_df.unpersist()
+        weighted_tags.unpersist()
 
         # 转换为所需的格式
         tags_data = [{
@@ -158,11 +174,13 @@ def get_word_cloud_data() -> Optional[Dict[str, Any]]:
         # 获取当前时间
         current_time = datetime.utcnow()
         
-        # 查找最新的词云数据
+        # 查找最新的词云数据，只选择必要字段
         cache_data = db.cache_data.find_one({
             "type": "word_cloud",
             "expired_at": {"$gt": current_time}  # 只获取未过期的数据
-        }, sort=[("created_at", -1)])
+        }, 
+        projection={"data.word_cloud": 1, "_id": 0},
+        sort=[("created_at", -1)])
         
         if cache_data and "data" in cache_data and "word_cloud" in cache_data["data"]:
             logger.info("找到有效的词云缓存数据")
@@ -176,11 +194,13 @@ def get_word_cloud_data() -> Optional[Dict[str, Any]]:
             logger.error("词云生成失败")
             return None
             
-        # 重新查询生成的数据
+        # 重新查询生成的数据，只选择必要字段
         new_cache_data = db.cache_data.find_one({
             "type": "word_cloud",
             "created_at": {"$gt": current_time}
-        }, sort=[("created_at", -1)])
+        }, 
+        projection={"data.word_cloud": 1, "_id": 0},
+        sort=[("created_at", -1)])
         
         if new_cache_data and "data" in new_cache_data and "word_cloud" in new_cache_data["data"]:
             logger.info("成功获取新生成的词云数据")
