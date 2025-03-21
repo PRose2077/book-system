@@ -141,8 +141,18 @@ def save_results_to_csv(results, book_id):
     os.makedirs(output_dir, exist_ok=True)
 
     book_title = results['book_info']['title']
-    # 清理书名以用作文件名37074780
-    safe_book_title = "".join(x for x in book_title if x.isalnum() or x == ' ').replace(' ', '_')
+    # 清理书名以用作文件名，只保留英文字母和数字
+    safe_book_title = ""
+    for x in book_title:
+        if x.isalnum() and ord(x) < 128:  # 只保留ASCII字母和数字
+            safe_book_title += x
+        elif x == ' ':
+            safe_book_title += '_'
+    
+    # 如果清理后文件名为空，则使用book_id
+    if not safe_book_title:
+        safe_book_title = f"book_{book_id}"
+    
     # 限制文件名长度
     safe_book_title = safe_book_title[:50] 
 
@@ -197,6 +207,5 @@ if __name__ == "__main__":
     book_id = input("请输入要爬取的豆瓣图书ID: ")
     
     # 这里使用你的cookie字符串
-    cookie_string = 'bid=8PppVIODNJQ; douban-fav-remind=1; viewed="36973903"; push_noty_num=0; push_doumail_num=0; _pk_id.100001.3ac3=55e92198f58f5051.1728138489.; ct=y; _vwo_uuid_v2=DBF40900BB21EBAC36C7AC72CAECC666D|197e08c5f4f00c6764f70a87233e50bd; __utmz=30149280.1728794105.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmv=30149280.25331; dbcl2="253310741:ACnufV+9lZI"; __utmz=81379588.1728895494.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __yadk_uid=NQY4bH5nN2n02PcpgDwIPYmDHaIS5i5X; __utma=30149280.766482741.1728794105.1729434282.1729588221.8; __utma=81379588.349112918.1728895494.1729434282.1729588221.7; ck=V1R_; ap_v=0,6.0'
-    
+    cookie_string = ''
     scrape_single_book(book_id, cookie_string) 
