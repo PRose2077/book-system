@@ -152,6 +152,18 @@ def save_results_to_csv(results, book_id):
     if not safe_book_title:
         safe_book_title = f"book_{book_id}"
     
+    # 清理书名以用作文件名，只保留英文字母和数字
+    safe_book_title = ""
+    for x in book_title:
+        if x.isalnum() and ord(x) < 128:  # 只保留ASCII字母和数字
+            safe_book_title += x
+        elif x == ' ':
+            safe_book_title += '_'
+    
+    # 如果清理后文件名为空，则使用book_id
+    if not safe_book_title:
+        safe_book_title = f"book_{book_id}"
+    
     # 限制文件名长度
     safe_book_title = safe_book_title[:50] 
 

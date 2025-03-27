@@ -17,7 +17,7 @@ def generate_content(normal_tags, tag_infos, writing_type):
         # https://api.siliconflow.cn/v1/chat/completions 硅基流动
         # 初始化DeepSeek客户端
         client = OpenAI(
-            api_key="sk-4eba81a3a7fe4a75b378eb642b1b60f7", 
+            api_key="", # 你的deepseek api-kay
             base_url="https://api.deepseek.com",
         )
         # 
