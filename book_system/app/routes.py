@@ -235,11 +235,6 @@ def upload_file():
             book_ids = [str(book_id) for book_id in df['book_id'].unique()]
             logger.info(f"文件大小: {file_size}, 总记录数: {total_records}")
             
-            # 保存重复book_id信息，用于后续处理
-            duplicate_info = {
-                'duplicate_book_ids': duplicate_book_ids
-            }
-            
         except Exception as e:
             logger.error(f"处理CSV文件失败: {str(e)}", exc_info=True)
             return jsonify({'code': 1, 'msg': f'处理CSV文件失败: {str(e)}'})
@@ -259,9 +254,13 @@ def upload_file():
             'total_records': total_records,
             'book_ids': book_ids,
             'last_updated': get_current_time(),
-            'queue_position': queue_position,
-            'duplicate_info': duplicate_info
+            'queue_position': queue_position
         }
+        
+        # 记录重复book_id信息，用于后续处理
+        if duplicate_book_ids:
+            upload_record['duplicate_book_ids'] = duplicate_book_ids
+            logger.info(f"记录了 {len(duplicate_book_ids)} 个书名相同的重复book_id")
         
         mongo.db.uploads.insert_one(upload_record)
         logger.info(f"已创建上传记录: {file_id}")
