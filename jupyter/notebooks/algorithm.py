@@ -147,7 +147,12 @@ def extract_keywords(text, top_n=5):
     """使用SnowNLP提取文本关键词"""
     try:
         s = SnowNLP(text)
-        return s.keywords(top_n)
+        # 获取关键词
+        keywords = s.keywords(top_n)
+        # 使用停用词表过滤
+        stopwords_set = broadcast_stopwords.value
+        filtered_keywords = [word for word in keywords if word not in stopwords_set]
+        return filtered_keywords
     except Exception as e:
         logger.error(f"关键词提取失败: {str(e)}")
         return []
@@ -257,7 +262,7 @@ def process_text(text):
         # 使用SnowNLP进行情感分析
         snow = SnowNLP(text)
         sentiment_score = snow.sentiments
-        sentiment_label = "正面" if sentiment_score > 0.5 else "负面"
+        sentiment_label = "正面" if sentiment_score > 0.4 else "负面"
         
         return (summary, keywords, labels, sentiment_label)
     except Exception as e:
