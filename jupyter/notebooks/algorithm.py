@@ -3,7 +3,7 @@ import sys
 import logging
 import hanlp
 import time
-import jiagu
+# import jiagu
 from snownlp import SnowNLP
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, udf, lit
@@ -144,15 +144,16 @@ stopwords = set(stopwords_df.rdd.map(lambda r: r[0]).collect())
 broadcast_stopwords = spark.sparkContext.broadcast(stopwords)
 
 def extract_keywords(text, top_n=5):
-    """使用jiagu提取文本关键词"""
+    """使用SnowNLP提取文本关键词"""
     try:
-        return jiagu.keywords(text, top_n)
+        s = SnowNLP(text)
+        return s.keywords(top_n)
     except Exception as e:
         logger.error(f"关键词提取失败: {str(e)}")
         return []
 
 def generate_summary(text, num_sentences=2):
-    """使用jiagu生成文本摘要"""
+    """使用SnowNLP生成文本摘要"""
     if not text or not isinstance(text, str):
         logger.warning("输入文本为空或非字符串类型")
         return ""
@@ -161,7 +162,8 @@ def generate_summary(text, num_sentences=2):
         return text.strip()
         
     try:
-        summary = jiagu.summarize(text, num_sentences)
+        s = SnowNLP(text)
+        summary = s.summary(num_sentences)
         
         if summary and len(summary) > 0:
             cleaned_sentences = [s.strip() for s in summary if s and s.strip()]
@@ -236,7 +238,7 @@ def extract_labels(text, keywords):
         return []
 
 @udf(StructType([
-    StructField("jiagu_summary", StringType()),
+    StructField("snow_summary", StringType()),
     StructField("keywords", ArrayType(StringType())),
     StructField("labels", ArrayType(StringType())),
     StructField("sentiment", StringType())
@@ -252,7 +254,7 @@ def process_text(text):
         summary = generate_summary(text)
         labels = extract_labels(summary, keywords)
         
-        # 使用SnowNLP替代jiagu进行情感分析
+        # 使用SnowNLP进行情感分析
         snow = SnowNLP(text)
         sentiment_score = snow.sentiments
         sentiment_label = "正面" if sentiment_score > 0.5 else "负面"
@@ -321,7 +323,7 @@ def process_and_write_to_mongodb(spark, input_file, batch_size=500):
                 col("book_id"),
                 col("comment_id"),
                 col("content"),
-                col("processed_text.jiagu_summary").alias("jiagu_summary"),
+                col("processed_text.snow_summary").alias("snow_summary"),
                 col("processed_text.keywords").alias("keywords"),
                 col("processed_text.labels").alias("labels"),
                 col("processed_text.sentiment").alias("sentiment")
@@ -329,7 +331,7 @@ def process_and_write_to_mongodb(spark, input_file, batch_size=500):
             
             # 过滤掉空值
             result_df = result_df.filter(
-                col("jiagu_summary").isNotNull() & 
+                col("snow_summary").isNotNull() & 
                 col("sentiment").isNotNull()
             )
             
@@ -401,7 +403,7 @@ def process_and_write_to_mongodb(spark, input_file, batch_size=500):
                         col("book_id"),
                         col("comment_id"),
                         col("content"),
-                        col("processed_text.jiagu_summary").alias("jiagu_summary"),
+                        col("processed_text.snow_summary").alias("snow_summary"),
                         col("processed_text.keywords").alias("keywords"),
                         col("processed_text.labels").alias("labels"),
                         col("processed_text.sentiment").alias("sentiment")
@@ -409,7 +411,7 @@ def process_and_write_to_mongodb(spark, input_file, batch_size=500):
                     
                     # 过滤掉空值
                     result_batch = result_batch.filter(
-                        col("jiagu_summary").isNotNull() & 
+                        col("snow_summary").isNotNull() & 
                         col("sentiment").isNotNull()
                     )
                     
