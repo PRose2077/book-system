@@ -4,6 +4,7 @@ import logging
 import hanlp
 import time
 import jiagu
+from snownlp import SnowNLP
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, udf, lit
 from config import TAGS_MONGO_URI, MONGO_DATABASE, TAGS_OUTPUT_COLLECTION,BOOK_INFO_COLLECTION
@@ -251,8 +252,10 @@ def process_text(text):
         summary = generate_summary(text)
         labels = extract_labels(summary, keywords)
         
-        sentiment = jiagu.sentiment(text)
-        sentiment_label = "正面" if sentiment[0] == "positive" else "负面"
+        # 使用SnowNLP替代jiagu进行情感分析
+        snow = SnowNLP(text)
+        sentiment_score = snow.sentiments
+        sentiment_label = "正面" if sentiment_score > 0.5 else "负面"
         
         return (summary, keywords, labels, sentiment_label)
     except Exception as e:

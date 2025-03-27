@@ -13,6 +13,7 @@ docker>=6.1.3
 pandas
 numpy
 hanlp
+snownlp
 jiagu
 matplotlib
 wordcloud
