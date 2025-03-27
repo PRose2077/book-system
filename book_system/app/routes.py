@@ -200,20 +200,26 @@ def upload_file():
             
             # 检查每个book_id是否存在冲突
             modified = False
+            duplicate_book_ids = []  # 用于记录书名相同的重复book_id
             unique_book_ids = df['book_id'].unique()
             logger.info(f"开始检查 {len(unique_book_ids)} 个唯一book_id")
             
             for book_id in unique_book_ids:
                 existing_book = mongo.db.books_info.find_one({'book_id': str(book_id)})
                 if existing_book:
-                    logger.info(f"找到已存在的book_id: {book_id}")
+                    logger.info(f"检测到book_id冲突: {book_id}")
                     current_title = df[df['book_id'] == book_id]['book_title'].iloc[0]
+                    logger.info(f"数据库中的书名: {existing_book['book_title']}")
+                    logger.info(f"上传文件中的书名: {current_title}")
+                    
                     if existing_book['book_title'] != current_title:
                         new_book_id = str(book_id) + '9'
                         df.loc[df['book_id'] == book_id, 'book_id'] = new_book_id
                         modified = True
-                        logger.info(f"检测到book_id冲突，将{book_id}修改为{new_book_id}")
-                        logger.info(f"原书名: {existing_book['book_title']}, 新书名: {current_title}")
+                        logger.info(f"由于书名不同，将book_id从 {book_id} 修改为 {new_book_id}")
+                    else:
+                        logger.info(f"book_id {book_id} 存在冲突，但书名相同，保持原book_id不变")
+                        duplicate_book_ids.append(str(book_id))  # 记录重复的book_id
             
             if modified:
                 # 如果有修改，保存更新后的文件
@@ -221,13 +227,18 @@ def upload_file():
                 df.to_csv(temp_path, index=False)
                 logger.info("已更新文件中的重复book_id")
             else:
-                logger.info("未检测到需要修改的book_id")
+                logger.info("未进行book_id修改")
             
             # 获取文件大小和总记录数
             file_size = os.path.getsize(temp_path)
             total_records = len(df)
             book_ids = [str(book_id) for book_id in df['book_id'].unique()]
             logger.info(f"文件大小: {file_size}, 总记录数: {total_records}")
+            
+            # 保存重复book_id信息，用于后续处理
+            duplicate_info = {
+                'duplicate_book_ids': duplicate_book_ids
+            }
             
         except Exception as e:
             logger.error(f"处理CSV文件失败: {str(e)}", exc_info=True)
@@ -248,7 +259,8 @@ def upload_file():
             'total_records': total_records,
             'book_ids': book_ids,
             'last_updated': get_current_time(),
-            'queue_position': queue_position
+            'queue_position': queue_position,
+            'duplicate_info': duplicate_info
         }
         
         mongo.db.uploads.insert_one(upload_record)

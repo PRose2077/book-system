@@ -3,3 +3,5 @@ mongodb/
 spark/
 __pycache__/
 fairscheduler-statedump.log
+README.md
+爬虫/cdcSingleBook.py

@@ -522,6 +522,28 @@ def process_file_async(file_id: str, filename: str):
         
         logger.info(f"已启动异步处理线程，文件ID: {file_id}, 文件名: {filename}")
         
+        # 处理完成后，清理重复的book_info记录
+        upload_record = mongo.db.uploads.find_one({'_id': ObjectId(file_id)})
+        if upload_record and 'duplicate_book_ids' in upload_record:
+            duplicate_book_ids = upload_record['duplicate_book_ids']
+            for book_id in duplicate_book_ids:
+                # 查找该book_id的所有记录
+                duplicates = list(mongo.db.books_info.find({'book_id': book_id}))
+                if len(duplicates) > 1:
+                    # 保留最新的一条记录
+                    newest_record = max(duplicates, key=lambda x: x.get('_id', ObjectId()))
+                    # 删除其他记录
+                    for record in duplicates:
+                        if record['_id'] != newest_record['_id']:
+                            mongo.db.books_info.delete_one({'_id': record['_id']})
+                    logger.info(f"已清理book_id {book_id}的重复记录，保留最新记录")
+            
+            # 清除duplicate_book_ids字段
+            mongo.db.uploads.update_one(
+                {'_id': ObjectId(file_id)},
+                {'$unset': {'duplicate_book_ids': ""}}
+            )
+        
     except Exception as e:
         error_msg = f"启动处理失败: {str(e)}"
         logger.error(error_msg)

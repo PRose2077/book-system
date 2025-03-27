@@ -64,8 +64,9 @@
 
 - Docker Engine
 - Docker Compose
-- 至少4GB可用内存
-- 至少10GB磁盘空间
+- 至少有4个CPU核心
+- 至少8GB可用内存
+- 至少40GB磁盘空间
 
 
 ## 更换yum源（仅作参考）

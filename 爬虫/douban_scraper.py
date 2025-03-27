@@ -421,7 +421,7 @@ def initialize_scraper():
 if __name__ == "__main__":
     # 豆瓣Cookie字符串
     cookie_string = 'bid=Fgxz09xSzMk; ap_v=0,6.0; viewed="37008509_36389921_36710597"'
-    num_samples = 2  # 每次爬取的书籍数量
+    num_samples = 10  # 每次爬取的书籍数量
     
     if initialize_scraper():
         try:

@@ -136,8 +136,7 @@ def extract_comment_info(comment):
 def save_results_to_csv(results, book_id):
     # 使用相对路径
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(current_dir)  # 只向上一级到项目根目录
-    output_dir = os.path.join(project_root, 'docs', 'data', 'single_books')
+    output_dir = os.path.join(current_dir, 'docs', 'data', 'single_books')
     os.makedirs(output_dir, exist_ok=True)
 
     book_title = results['book_info']['title']
@@ -207,6 +206,6 @@ if __name__ == "__main__":
     book_id = input("请输入要爬取的豆瓣图书ID: ")
     
     # 这里使用你的cookie字符串
-    cookie_string = 'bid=8PppVIODNJQ; douban-fav-remind=1; viewed="36973903"; push_noty_num=0; push_doumail_num=0; _pk_id.100001.3ac3=55e92198f58f5051.1728138489.; ct=y; _vwo_uuid_v2=DBF40900BB21EBAC36C7AC72CAECC666D|197e08c5f4f00c6764f70a87233e50bd; __utmz=30149280.1728794105.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmv=30149280.25331; dbcl2="253310741:ACnufV+9lZI"; __utmz=81379588.1728895494.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __yadk_uid=NQY4bH5nN2n02PcpgDwIPYmDHaIS5i5X; __utma=30149280.766482741.1728794105.1729434282.1729588221.8; __utma=81379588.349112918.1728895494.1729434282.1729588221.7; ck=V1R_; ap_v=0,6.0'
+    cookie_string = 'bid=Fgxz09xSzMk; viewed="37005845_37008509_36389921_36710597"; douban-fav-remind=1; _vwo_uuid_v2=D3B1985B74566E8133964F8AA346D8585|a2dde6ac55434340ae24723b94c01203; dbcl2="253310741:uX6HbAxxn5Y"; push_noty_num=0; push_doumail_num=0; ck=FLyV; __utmc=30149280; __utmz=30149280.1742959753.11.6.utmcsr=cn.bing.com|utmccn=(referral)|utmcmd=referral|utmcct=/; frodotk_db="e80a5e1886507b39b81f1a4992f171ab"; ct=y; ap_v=0,6.0; __utma=30149280.446198933.1739373311.1742988390.1742991245.17; __utmt_douban=1; __utmb=30149280.9.10.1742991245'
     
     scrape_single_book(book_id, cookie_string) 
