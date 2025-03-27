@@ -193,12 +193,21 @@ def extract_labels(text, keywords):
     """使用HanLP提取文本标签"""
     try:
         local_HanLP = HanLP_broadcast.value
+        stopwords_set = broadcast_stopwords.value
         doc = local_HanLP(text, tasks=['tok/fine', 'pos/ctb', 'dep', 'sdp'])
         tags = set()
         
         words = doc['tok/fine']
         pos_tags = doc['pos/ctb']
         sdp = doc['sdp']
+        
+        # 过滤掉停用词
+        filtered_words = []
+        filtered_pos_tags = []
+        for i, word in enumerate(words):
+            if word not in stopwords_set:
+                filtered_words.append(word)
+                filtered_pos_tags.append(pos_tags[i])
         
         # 1. 优先添加关键词
         tags.update(keywords)
