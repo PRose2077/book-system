@@ -48,7 +48,7 @@ def read_csv_with_schema(spark, hdfs_path):
     from pyspark.sql.functions import col, lit
     
     try:
-        # 1. 读取并获取实际的列
+        # 读取并获取实际的列
         raw_df = spark.read.csv(
             hdfs_path,
             header=True,
@@ -59,17 +59,17 @@ def read_csv_with_schema(spark, hdfs_path):
         )
         actual_columns = raw_df.columns
         
-        # 2. 检查必需的列是否存在
+        # 检查必需的列是否存在
         required_columns = {'book_id', 'book_title', 'comment_id', 'content'}
         missing_required = required_columns - set(actual_columns)
         if missing_required:
             raise ValueError(f"CSV文件缺少必需的列: {missing_required}")
         
-        # 3. 获取完整schema并处理列
+        # 获取完整schema并处理列
         full_schema = get_full_schema()
         expected_columns = [field.name for field in full_schema.fields]
         
-        # 4. 读取数据并处理列
+        # 读取数据并处理列
         df = spark.read.csv(
             hdfs_path,
             header=True,
@@ -78,7 +78,7 @@ def read_csv_with_schema(spark, hdfs_path):
             sep=','
         )
         
-        # 5. 选择列并补充缺失列
+        # 选择列并补充缺失列
         selected_cols = []
         for expected_col in expected_columns:
             if expected_col in actual_columns:
@@ -86,7 +86,7 @@ def read_csv_with_schema(spark, hdfs_path):
             else:
                 selected_cols.append(lit(None).cast(StringType()).alias(expected_col))
         
-        # 6. 返回最终的DataFrame
+        # 返回最终的DataFrame
         return df.select(*selected_cols)
         
     except Exception as e:
