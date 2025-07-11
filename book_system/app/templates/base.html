@@ -32,7 +32,7 @@
         <!-- 最后加载自定义JS -->
         <script src="{{ url_for('static', filename='js/main.js') }}"></script>
         <script src="{{ url_for('static', filename='js/marked.min.js') }}"></script>
-        <!-- 添加额外的块，用于子模板添加自己的脚本 -->
+        <!-- 添加额外的块，用于子模板添加脚本 -->
         {% block extra_scripts %}{% endblock %}
     </head>
 <body class="layui-layout-body">
@@ -196,7 +196,7 @@
             }
         });
 
-        // 在页面卸载时销毁通知系统
+     
         $(window).on('beforeunload', function() {
             if (window.notificationSystem && window.notificationSystem.initialized) {
                 window.notificationSystem.destroy();
